@@ -1,0 +1,30 @@
+name: Build NootedRed.kext
+ 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+ 
+jobs:
+  build:
+    runs-on: macos-latest
+ 
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+ 
+    - name: Install Dependencies
+      run: |
+        xcode-select --switch /Applications/Xcode_12.4.app
+        sudo xcode-select -s /Applications/Xcode_12.4.app
+        xcodebuild -version
+        xcodebuild -license accept
+        brew install kext-tool # 如果你需要额外的工具，例如kext-tool来签名kext
+    - name: Build kext
+      run: |
+        xcodebuild -project NootedRed.xcodeproj -scheme NootedRed -configuration Release build
+        mv build/Release/NootedRed.kext .
+    - name: Sign kext
+      run: |
+        sudo kext-tool sign --identity "Developer ID Installer: Your Name (Your ID)" NootedRed.kext
